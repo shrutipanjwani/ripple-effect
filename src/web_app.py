@@ -11,20 +11,43 @@ import time
 from collections import deque
 import random
 import math
+import kagglehub
+from kagglehub import KaggleDatasetAdapter
+import pandas as pd
 
 app = Flask(__name__)
 
 # Initialize Pygame and its mixer for audio
 pygame.init()
-pygame.mixer.init()
+# pygame.mixer.init()  # Commented out audio mixer
 
 # Load the background music
-try:
-    background_music = pygame.mixer.Sound('game-music.mp3')
-    background_music.set_volume(0.5)  # Set to 50% volume
-except:
-    print("Warning: Could not load game-music.mp3")
-    background_music = None
+# try:
+#     background_music = pygame.mixer.Sound('game-music.mp3')
+#     background_music.set_volume(0.5)  # Set to 50% volume
+# except:
+#     print("Warning: Could not load game-music.mp3")
+#     background_music = None
+background_music = None  # Set to None since we're not using music for now
+
+# Load FER2013 dataset using Kaggle SDK
+def load_dataset():
+    try:
+        print("Loading FER2013 dataset from Kaggle...")
+        dataset = kagglehub.load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "deadskull7/fer2013",
+            "fer2013.csv"
+        )
+        print("Dataset loaded successfully!")
+        return dataset
+    except Exception as e:
+        print(f"Error loading dataset: {e}")
+        print("Please ensure you have authenticated with Kaggle and have internet access.")
+        return None
+
+# Initialize dataset as None, it will be loaded when needed
+fer2013_df = None
 
 # Create the model
 model = Sequential()
@@ -169,8 +192,8 @@ class GameState:
         self.session_duration = 45.0
         self.ripple_effect = None
         self.state = "WAITING"  # WAITING, COUNTDOWN, ACTIVE, COMPLETE
-        self.music_playing = False
-        self.last_music_state = False
+        # self.music_playing = False  # Commented out music state
+        # self.last_music_state = False  # Commented out music state
         
 game_state = GameState()
 
@@ -207,15 +230,15 @@ def update_emotion_weights(detected_emotion):
             game_state.teaching_display_time = time.time()
             game_state.emotion_weights = {emotion: 0 for emotion in game_state.emotion_weights}
             
-            # Handle music playback based on emotion
-            if background_music:
-                should_play = dominant_emotion in ["Neutral", "Fearful"]
-                if should_play and not game_state.music_playing:
-                    background_music.play(-1)  # -1 means loop indefinitely
-                    game_state.music_playing = True
-                elif not should_play and game_state.music_playing:
-                    background_music.stop()
-                    game_state.music_playing = False
+            # Handle music playback based on emotion - Commented out
+            # if background_music:
+            #     should_play = dominant_emotion in ["Neutral", "Fearful"]
+            #     if should_play and not game_state.music_playing:
+            #         background_music.play(-1)  # -1 means loop indefinitely
+            #         game_state.music_playing = True
+            #     elif not should_play and game_state.music_playing:
+            #         background_music.stop()
+            #         game_state.music_playing = False
 
 def create_ripple_surface(frame, ripple_effect):
     """Create enhanced ripple effect with emotion-specific visuals"""
@@ -356,10 +379,10 @@ def generate_frames():
                 game_state.session_active = False
                 game_state.emotion_weights = {emotion: 0 for emotion in game_state.emotion_weights}
                 game_state.current_emotion = None
-                # Stop music if playing
-                if background_music and game_state.music_playing:
-                    background_music.stop()
-                    game_state.music_playing = False
+                # Stop music if playing - Commented out
+                # if background_music and game_state.music_playing:
+                #     background_music.stop()
+                #     game_state.music_playing = False
                 game_state.state = "WAITING"
             
             ret, buffer = cv2.imencode('.jpg', frame)
@@ -475,5 +498,9 @@ if __name__ == '__main__':
 </html>
         ''')
     
-    print("Starting Ripple Effect Game with enhanced stability. Please open http://127.0.0.1:5000 in your browser")
-    app.run(debug=True) 
+    # Get port from environment variable for production deployment
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    
+    print(f"Starting Ripple Effect Game. Please open http://127.0.0.1:{port} in your browser")
+    app.run(host='0.0.0.0', port=port, debug=debug) 

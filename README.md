@@ -10,6 +10,33 @@ A real-time emotion detection game that creates ripple effects based on facial e
   - `src/model.h5`
   - `src/haarcascade_frontalface_default.xml`
   - `src/game-music.mp3` (optional)
+- Kaggle account and API credentials
+
+## Dataset Setup
+
+The application uses the FER2013 dataset from Kaggle, which will be automatically downloaded using the Kaggle SDK. To set this up:
+
+1. Create a Kaggle account if you don't have one: [Kaggle Sign Up](https://www.kaggle.com/account/login?phase=startRegisterTab)
+
+2. Generate your Kaggle API token:
+
+   - Go to your Kaggle account settings: https://www.kaggle.com/settings
+   - Scroll to "API" section and click "Create New API Token"
+   - This will download a `kaggle.json` file
+
+3. Set up your Kaggle credentials:
+
+   ```bash
+   # On Linux/macOS:
+   mkdir -p ~/.kaggle
+   cp path/to/downloaded/kaggle.json ~/.kaggle/
+   chmod 600 ~/.kaggle/kaggle.json
+
+   # On Windows:
+   copy path\to\downloaded\kaggle.json %USERPROFILE%\.kaggle\
+   ```
+
+The dataset will be automatically downloaded when you run the application for the first time.
 
 ## Local Development
 

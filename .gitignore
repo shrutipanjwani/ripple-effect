@@ -1,3 +1,8 @@
+# Large files
+src/fer2013.csv
+*.h5
+*.mp3
+
 # Python
 __pycache__/
 *.py[cod]
@@ -16,7 +21,6 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -31,6 +35,13 @@ ENV/
 *.swp
 *.swo
 
+# OS
+.DS_Store
+Thumbs.db
+
+# Kaggle
+kaggle.json
+
 # Logs
 *.log
 
@@ -40,15 +51,13 @@ ENV/
 .env.*.local
 
 # Model files (if they're large, consider using Git LFS)
-*.h5
 *.pkl
 
 # Media files
-*.mp3
 *.mp4
 *.avi
 *.mov
 
 # Temporary files
-.DS_Store
-Thumbs.db 
+*.swp
+*.swo 
