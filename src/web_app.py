@@ -66,7 +66,12 @@ model.add(Dropout(0.5))
 model.add(Dense(7, activation='softmax'))
 
 # Load the pre-trained model
-model.load_weights('model.h5')
+try:
+    model.load_weights('model.h5')
+    print("Successfully loaded model weights")
+except Exception as e:
+    print(f"Error loading model weights: {e}")
+    raise Exception("Failed to load model weights. Please ensure model.h5 is present in the correct location.")
 
 # Dictionary which assigns each label an emotion
 emotion_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutral", 5: "Sad", 6: "Surprised"}
@@ -81,6 +86,16 @@ spiritual_teachings = {
     "Sad": "This too shall pass. Feel Nirankar's comfort embrace you.",
     "Surprised": "Each moment reveals Nirankar's wonder. Stay open."
 }
+
+# Try to load face cascade classifier
+try:
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    if face_cascade.empty():
+        raise Exception("Failed to load cascade classifier")
+    print("Successfully loaded face cascade classifier")
+except Exception as e:
+    print(f"Error loading face cascade classifier: {e}")
+    raise Exception("Failed to load face cascade classifier. Please ensure haarcascade_frontalface_default.xml is present in the correct location.")
 
 class RippleEffect:
     def __init__(self, width, height):
@@ -197,20 +212,24 @@ class GameState:
         
 game_state = GameState()
 
-# Initialize the camera
-for camera_index in [1, 0, 2]:
-    camera = cv2.VideoCapture(camera_index)
-    if camera.isOpened():
-        ret, frame = camera.read()
-        if ret:
+# Initialize camera only if not in production
+if os.environ.get('FLASK_ENV') != 'production':
+    for camera_index in [1, 0, 2]:
+        camera = cv2.VideoCapture(camera_index)
+        if camera.isOpened():
+            ret, frame = camera.read()
+            if ret:
+                camera.release()
+                camera = cv2.VideoCapture(camera_index)
+                print(f"Successfully connected to camera {camera_index}")
+                break
             camera.release()
-            camera = cv2.VideoCapture(camera_index)
-            print(f"Successfully connected to camera {camera_index}")
-            break
-        camera.release()
+    else:
+        print("Error: Could not find working camera")
+        camera = cv2.VideoCapture(0)
 else:
-    print("Error: Could not find working camera")
-    camera = cv2.VideoCapture(0)
+    print("Running in production mode - camera initialization skipped")
+    camera = None
 
 def update_emotion_weights(detected_emotion):
     """Update emotion weights with decay for others"""
@@ -295,6 +314,9 @@ def create_ripple_surface(frame, ripple_effect):
     return frame_displaced.astype(np.uint8)
 
 def generate_frames():
+    if camera is None:
+        return b''
+        
     while True:
         success, frame = camera.read()
         if not success:
@@ -306,8 +328,7 @@ def generate_frames():
         try:
             # Convert to grayscale for face detection
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = cv2.CascadeClassifier('haarcascade_frontalface_default.xml').detectMultiScale(
-                gray, scaleFactor=1.3, minNeighbors=5)
+            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
             
             # State machine for game flow
             if game_state.state == "WAITING" and len(faces) > 0:
