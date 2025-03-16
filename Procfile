@@ -1,1 +1,1 @@
-web: cd src && gunicorn -c ../gunicorn_config.py web_app:app 
+web: cd src && gunicorn web_app:app 

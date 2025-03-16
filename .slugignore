@@ -1,0 +1,10 @@
+/tests
+*.mp3
+*.csv
+/docs
+README.md
+.gitignore
+.git
+*.pyc
+__pycache__
+.pytest_cache 
