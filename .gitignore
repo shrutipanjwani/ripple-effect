@@ -1,7 +1,5 @@
-# Large files
+# Dataset files
 src/fer2013.csv
-*.h5
-*.mp3
 
 # Python
 __pycache__/
@@ -9,7 +7,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -21,6 +18,7 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -28,6 +26,7 @@ var/
 # Virtual Environment
 venv/
 ENV/
+env/
 
 # IDE
 .idea/
@@ -37,26 +36,24 @@ ENV/
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Kaggle
+# Kaggle credentials
 kaggle.json
+.kaggle/
 
-# Logs
-*.log
-
-# Local development
-.env
-.env.local
-.env.*.local
-
-# Model files (if they're large, consider using Git LFS)
+# Model files
+*.h5
 *.pkl
+*.pth
 
-# Media files
-*.mp4
-*.avi
-*.mov
+# Large files
+*.mp3
 
 # Temporary files
 *.swp

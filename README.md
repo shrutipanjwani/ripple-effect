@@ -1,173 +1,116 @@
-# Emotion Detection Game - Sant Nirankari Mission
+# Ripple Effect - Emotion Detection Game
 
-A real-time emotion detection game that creates ripple effects based on facial expressions and provides spiritual teachings.
+A mindful journey through emotional awareness, creating visual ripples based on detected emotions.
+
+## Overview
+
+Ripple Effect is an interactive web application that uses computer vision and deep learning to detect emotions from facial expressions in real-time. The application creates beautiful ripple effects that vary based on the detected emotion, providing a unique visualization of emotional states.
+
+## Features
+
+- Real-time emotion detection from webcam feed
+- Dynamic ripple effects based on emotions
+- Spiritual teachings for each emotional state
+- Interactive session-based gameplay
+- Beautiful visual effects for different emotions
 
 ## Prerequisites
 
-- Python 3.8+
-- Webcam
-- Required model files:
-  - `src/model.h5`
-  - `src/haarcascade_frontalface_default.xml`
-  - `src/game-music.mp3` (optional)
-- Kaggle account and API credentials
+- Python 3.10 or higher
+- Webcam access
+- Kaggle account and API credentials (for dataset download)
 
-## Dataset Setup
+## Setup
 
-The application uses the FER2013 dataset from Kaggle, which will be automatically downloaded using the Kaggle SDK. To set this up:
+1. Clone the repository:
 
-1. Create a Kaggle account if you don't have one: [Kaggle Sign Up](https://www.kaggle.com/account/login?phase=startRegisterTab)
+```bash
+git clone https://github.com/shrutipanjwani/ripple-effect.git
+cd ripple-effect
+```
 
-2. Generate your Kaggle API token:
-
-   - Go to your Kaggle account settings: https://www.kaggle.com/settings
-   - Scroll to "API" section and click "Create New API Token"
-   - This will download a `kaggle.json` file
-
-3. Set up your Kaggle credentials:
-
-   ```bash
-   # On Linux/macOS:
-   mkdir -p ~/.kaggle
-   cp path/to/downloaded/kaggle.json ~/.kaggle/
-   chmod 600 ~/.kaggle/kaggle.json
-
-   # On Windows:
-   copy path\to\downloaded\kaggle.json %USERPROFILE%\.kaggle\
-   ```
-
-The dataset will be automatically downloaded when you run the application for the first time.
-
-## Local Development
-
-1. Create a virtual environment:
+2. Create and activate a virtual environment:
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Run locally:
-
-```bash
-cd src
-python web_app.py
-```
-
-## Production Deployment
-
-### Option 1: Deploy to Heroku
-
-1. Install Heroku CLI and login:
-
-```bash
-heroku login
-```
-
-2. Create new Heroku app:
-
-```bash
-heroku create your-app-name
-```
-
-3. Configure buildpacks:
-
-```bash
-heroku buildpacks:add --index 1 heroku/python
-```
-
-4. Deploy:
-
-```bash
-git push heroku main
-```
-
-### Option 2: Deploy using Docker
-
-1. Build the Docker image:
-
-```bash
-docker build -t emotion-detection-game .
-```
-
-2. Run the container:
-
-```bash
-docker run -p 8000:8000 emotion-detection-game
-```
-
-### Option 3: Deploy to a VPS/Cloud Server
-
-1. SSH into your server
-2. Clone the repository
 3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Run with gunicorn:
+4. Set up Kaggle credentials:
+   - Create a Kaggle account if you don't have one
+   - Go to your Kaggle account settings (https://www.kaggle.com/account)
+   - Create a new API token (this will download kaggle.json)
+   - Place the kaggle.json file in one of these locations:
+     - Linux/macOS: ~/.kaggle/kaggle.json
+     - Windows: C:\\Users\\<Windows-username>\\.kaggle\\kaggle.json
+
+## Dataset
+
+The application uses the FER2013 dataset for emotion detection. The dataset will be automatically downloaded when you run the application for the first time using the Kaggle API.
+
+## Running the Application
+
+1. Navigate to the src directory:
 
 ```bash
-gunicorn --chdir src web_app:app -b 0.0.0.0:8000
+cd src
 ```
 
-## Production Testing
+2. Run the application:
 
-1. **Load Testing:**
+```bash
+python web_app.py
+```
 
-   - Use Apache Benchmark or wrk for load testing:
+3. Open your web browser and go to:
 
-   ```bash
-   ab -n 1000 -c 50 https://your-domain.com/
-   ```
+```
+http://localhost:5000
+```
 
-2. **Browser Testing:**
+## How to Play
 
-   - Test on different browsers (Chrome, Firefox, Safari)
-   - Test on mobile devices
-   - Verify webcam permissions work correctly
+1. Allow camera access when prompted
+2. Position yourself in front of the camera
+3. The game will start automatically when it detects your face
+4. Express different emotions and watch as they create unique ripple effects
+5. Each session lasts 45 seconds
+6. Read and reflect on the spiritual teachings that appear with each emotion
 
-3. **Error Handling:**
+## Emotions Detected
 
-   - Test with webcam disconnected
-   - Test with slow internet connection
-   - Verify error messages are displayed properly
+- Happy (Cyan ripples)
+- Surprised (Gold ripples)
+- Neutral (Silver ripples)
+- Sad (Blue ripples)
+- Angry (Red ripples)
+- Fearful (Purple ripples)
+- Disgusted (Green ripples)
 
-4. **Performance Monitoring:**
-   - Set up monitoring using New Relic or Datadog
-   - Monitor CPU and memory usage
-   - Track response times and error rates
+## Technical Details
 
-## Security Considerations
+- Built with Flask for the web framework
+- Uses OpenCV for face detection
+- TensorFlow/Keras for emotion recognition
+- Custom ripple effect algorithm for visualizations
+- Kaggle SDK for dataset management
 
-1. Enable HTTPS using SSL/TLS certificates
-2. Implement rate limiting
-3. Add CORS headers if needed
-4. Ensure proper webcam permission handling
-5. Monitor for suspicious activities
+## Contributing
 
-## Environment Variables
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Configure these environment variables in production:
+## License
 
-- `FLASK_ENV=production`
-- `FLASK_DEBUG=0`
-- `ALLOWED_ORIGINS=your-domain.com`
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Maintenance
+## Acknowledgments
 
-1. Regularly update dependencies
-2. Monitor error logs
-3. Backup model files
-4. Update SSL certificates when needed
-
-## Support
-
-For issues and support, please create an issue in the repository or contact the maintainers.
+- FER2013 dataset from Kaggle
+- Sant Nirankari Mission for spiritual teachings
+- OpenCV and TensorFlow communities
