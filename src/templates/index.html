@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emotion Detection Game - Sant Nirankari Mission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .video-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .error-message {
+            display: none;
+            color: red;
+            margin-top: 20px;
+        }
+        #videoFeed {
+            min-height: 300px;
+        }
+        .instructions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            const img = document.getElementById('videoFeed');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            img.onerror = function() {
+                errorMsg.style.display = 'block';
+                img.style.display = 'none';
+            };
+            
+            img.onload = function() {
+                errorMsg.style.display = 'none';
+                img.style.display = 'block';
+            };
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Ripple Effect - A Mindful Journey</h1>
+        <div class="instructions">
+            <h3>Welcome to the Ripple Effect Game</h3>
+            <p>Create waves of positivity through mindful emotional awareness.</p>
+            <p>Each session lasts 45 seconds. Listen to the teachings and let your emotions flow naturally.</p>
+        </div>
+        <div class="video-container">
+            <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video feed">
+            <div id="errorMessage" class="error-message">
+                Camera not available. Please check your camera settings and make sure:
+                <ul style="text-align: left;">
+                    <li>Your camera is enabled</li>
+                    <li>No other application is using the camera</li>
+                    <li>Camera permissions are granted to your browser</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+        

@@ -1,72 +1,146 @@
-# Emotion detection using deep learning
+# Emotion Detection Game - Sant Nirankari Mission
 
-## Introduction
+A real-time emotion detection game that creates ripple effects based on facial expressions and provides spiritual teachings.
 
-This project aims to classify the emotion on a person's face into one of **seven categories**, using deep convolutional neural networks. The model is trained on the **FER-2013** dataset which was published on International Conference on Machine Learning (ICML). This dataset consists of 35887 grayscale, 48x48 sized face images with **seven emotions** - angry, disgusted, fearful, happy, neutral, sad and surprised.
+## Prerequisites
 
-## Dependencies
+- Python 3.8+
+- Webcam
+- Required model files:
+  - `src/model.h5`
+  - `src/haarcascade_frontalface_default.xml`
+  - `src/game-music.mp3` (optional)
 
-* Python 3, [OpenCV](https://opencv.org/), [Tensorflow](https://www.tensorflow.org/)
-* To install the required packages, run `pip install -r requirements.txt`.
+## Local Development
 
-## Basic Usage
-
-The repository is currently compatible with `tensorflow-2.0` and makes use of the Keras API using the `tensorflow.keras` library.
-
-* First, clone the repository and enter the folder
-
-```bash
-git clone https://github.com/atulapra/Emotion-detection.git
-cd Emotion-detection
-```
-
-* Download the FER-2013 dataset inside the `src` folder.
-
-* If you want to train this model, use:  
+1. Create a virtual environment:
 
 ```bash
-cd src
-python emotions.py --mode train
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-* If you want to view the predictions without training again, you can download the pre-trained model from [here](https://drive.google.com/file/d/1FUn0XNOzf-nQV7QjbBPA6-8GLoHNNgv-/view?usp=sharing) and then run:  
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Run locally:
 
 ```bash
 cd src
-python emotions.py --mode display
+python web_app.py
 ```
 
-* The folder structure is of the form:  
-  src:
-  * data (folder)
-  * `emotions.py` (file)
-  * `haarcascade_frontalface_default.xml` (file)
-  * `model.h5` (file)
+## Production Deployment
 
-* This implementation by default detects emotions on all faces in the webcam feed. With a simple 4-layer CNN, the test accuracy reached 63.2% in 50 epochs.
+### Option 1: Deploy to Heroku
 
-![Accuracy plot](imgs/accuracy.png)
+1. Install Heroku CLI and login:
 
-## Data Preparation (optional)
+```bash
+heroku login
+```
 
-* The [original FER2013 dataset in Kaggle](https://www.kaggle.com/deadskull7/fer2013) is available as a single csv file. I had converted into a dataset of images in the PNG format for training/testing.
+2. Create new Heroku app:
 
-* In case you are looking to experiment with new datasets, you may have to deal with data in the csv format. I have provided the code I wrote for data preprocessing in the `dataset_prepare.py` file which can be used for reference.
+```bash
+heroku create your-app-name
+```
 
-## Algorithm
+3. Configure buildpacks:
 
-* First, the **haar cascade** method is used to detect faces in each frame of the webcam feed.
+```bash
+heroku buildpacks:add --index 1 heroku/python
+```
 
-* The region of image containing the face is resized to **48x48** and is passed as input to the CNN.
+4. Deploy:
 
-* The network outputs a list of **softmax scores** for the seven classes of emotions.
+```bash
+git push heroku main
+```
 
-* The emotion with maximum score is displayed on the screen.
+### Option 2: Deploy using Docker
 
-## References
+1. Build the Docker image:
 
-* "Challenges in Representation Learning: A report on three machine learning contests." I Goodfellow, D Erhan, PL Carrier, A Courville, M Mirza, B
-   Hamner, W Cukierski, Y Tang, DH Lee, Y Zhou, C Ramaiah, F Feng, R Li,  
-   X Wang, D Athanasakis, J Shawe-Taylor, M Milakov, J Park, R Ionescu,
-   M Popescu, C Grozea, J Bergstra, J Xie, L Romaszko, B Xu, Z Chuang, and
-   Y. Bengio. arXiv 2013.
+```bash
+docker build -t emotion-detection-game .
+```
+
+2. Run the container:
+
+```bash
+docker run -p 8000:8000 emotion-detection-game
+```
+
+### Option 3: Deploy to a VPS/Cloud Server
+
+1. SSH into your server
+2. Clone the repository
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Run with gunicorn:
+
+```bash
+gunicorn --chdir src web_app:app -b 0.0.0.0:8000
+```
+
+## Production Testing
+
+1. **Load Testing:**
+
+   - Use Apache Benchmark or wrk for load testing:
+
+   ```bash
+   ab -n 1000 -c 50 https://your-domain.com/
+   ```
+
+2. **Browser Testing:**
+
+   - Test on different browsers (Chrome, Firefox, Safari)
+   - Test on mobile devices
+   - Verify webcam permissions work correctly
+
+3. **Error Handling:**
+
+   - Test with webcam disconnected
+   - Test with slow internet connection
+   - Verify error messages are displayed properly
+
+4. **Performance Monitoring:**
+   - Set up monitoring using New Relic or Datadog
+   - Monitor CPU and memory usage
+   - Track response times and error rates
+
+## Security Considerations
+
+1. Enable HTTPS using SSL/TLS certificates
+2. Implement rate limiting
+3. Add CORS headers if needed
+4. Ensure proper webcam permission handling
+5. Monitor for suspicious activities
+
+## Environment Variables
+
+Configure these environment variables in production:
+
+- `FLASK_ENV=production`
+- `FLASK_DEBUG=0`
+- `ALLOWED_ORIGINS=your-domain.com`
+
+## Maintenance
+
+1. Regularly update dependencies
+2. Monitor error logs
+3. Backup model files
+4. Update SSL certificates when needed
+
+## Support
+
+For issues and support, please create an issue in the repository or contact the maintainers.

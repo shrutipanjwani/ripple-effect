@@ -28,7 +28,7 @@ def plot_model_history(model_history):
     axs[0].set_title('Model Accuracy')
     axs[0].set_ylabel('Accuracy')
     axs[0].set_xlabel('Epoch')
-    axs[0].set_xticks(np.arange(1,len(model_history.history['accuracy'])+1),len(model_history.history['accuracy'])/10)
+    axs[0].set_xticks(np.arange(1,len(model_history.history['accuracy'])+1))
     axs[0].legend(['train', 'val'], loc='best')
     # summarize history for loss
     axs[1].plot(range(1,len(model_history.history['loss'])+1),model_history.history['loss'])
@@ -36,7 +36,7 @@ def plot_model_history(model_history):
     axs[1].set_title('Model Loss')
     axs[1].set_ylabel('Loss')
     axs[1].set_xlabel('Epoch')
-    axs[1].set_xticks(np.arange(1,len(model_history.history['loss'])+1),len(model_history.history['loss'])/10)
+    axs[1].set_xticks(np.arange(1,len(model_history.history['loss'])+1))
     axs[1].legend(['train', 'val'], loc='best')
     fig.savefig('plot.png')
     plt.show()
@@ -88,8 +88,8 @@ model.add(Dense(7, activation='softmax'))
 
 # If you want to train the same model or try other models, go for this
 if mode == "train":
-    model.compile(loss='categorical_crossentropy',optimizer=Adam(lr=0.0001, decay=1e-6),metrics=['accuracy'])
-    model_info = model.fit_generator(
+    model.compile(loss='categorical_crossentropy',optimizer=Adam(learning_rate=0.0001),metrics=['accuracy'])
+    model_info = model.fit(
             train_generator,
             steps_per_epoch=num_train // batch_size,
             epochs=num_epoch,
@@ -110,11 +110,25 @@ elif mode == "display":
 
     # start the webcam feed
     cap = cv2.VideoCapture(0)
+    
+    # Check if camera opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open camera")
+        exit()
+
+    # Create a named window and set it to stay on top
+    cv2.namedWindow('Emotion Detection', cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty('Emotion Detection', cv2.WND_PROP_TOPMOST, 1)
+    
+    print("Camera window opened. Press 'q' to quit.")
+    
     while True:
         # Find haar cascade to draw bounding box around face
         ret, frame = cap.read()
         if not ret:
+            print("Error: Can't receive frame from camera")
             break
+            
         facecasc = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = facecasc.detectMultiScale(gray,scaleFactor=1.3, minNeighbors=5)
@@ -127,9 +141,14 @@ elif mode == "display":
             maxindex = int(np.argmax(prediction))
             cv2.putText(frame, emotion_dict[maxindex], (x+20, y-60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
-        cv2.imshow('Video', cv2.resize(frame,(1600,960),interpolation = cv2.INTER_CUBIC))
+        # Show the frame
+        cv2.imshow('Emotion Detection', cv2.resize(frame,(1600,960),interpolation = cv2.INTER_CUBIC))
+        
+        # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    # Release resources
     cap.release()
     cv2.destroyAllWindows()
+    print("Camera window closed.")

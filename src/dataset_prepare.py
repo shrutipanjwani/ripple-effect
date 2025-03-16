@@ -56,49 +56,49 @@ for i in tqdm(range(len(df))):
     # train
     if i < 28709:
         if df['emotion'][i] == 0:
-            img.save('train/angry/im'+str(angry)+'.png')
+            img.save(os.path.join('data', 'train', 'angry', f'im{angry}.png'))
             angry += 1
         elif df['emotion'][i] == 1:
-            img.save('train/disgusted/im'+str(disgusted)+'.png')
+            img.save(os.path.join('data', 'train', 'disgusted', f'im{disgusted}.png'))
             disgusted += 1
         elif df['emotion'][i] == 2:
-            img.save('train/fearful/im'+str(fearful)+'.png')
+            img.save(os.path.join('data', 'train', 'fearful', f'im{fearful}.png'))
             fearful += 1
         elif df['emotion'][i] == 3:
-            img.save('train/happy/im'+str(happy)+'.png')
+            img.save(os.path.join('data', 'train', 'happy', f'im{happy}.png'))
             happy += 1
         elif df['emotion'][i] == 4:
-            img.save('train/sad/im'+str(sad)+'.png')
+            img.save(os.path.join('data', 'train', 'sad', f'im{sad}.png'))
             sad += 1
         elif df['emotion'][i] == 5:
-            img.save('train/surprised/im'+str(surprised)+'.png')
+            img.save(os.path.join('data', 'train', 'surprised', f'im{surprised}.png'))
             surprised += 1
         elif df['emotion'][i] == 6:
-            img.save('train/neutral/im'+str(neutral)+'.png')
+            img.save(os.path.join('data', 'train', 'neutral', f'im{neutral}.png'))
             neutral += 1
 
     # test
     else:
         if df['emotion'][i] == 0:
-            img.save('test/angry/im'+str(angry_test)+'.png')
+            img.save(os.path.join('data', 'test', 'angry', f'im{angry_test}.png'))
             angry_test += 1
         elif df['emotion'][i] == 1:
-            img.save('test/disgusted/im'+str(disgusted_test)+'.png')
+            img.save(os.path.join('data', 'test', 'disgusted', f'im{disgusted_test}.png'))
             disgusted_test += 1
         elif df['emotion'][i] == 2:
-            img.save('test/fearful/im'+str(fearful_test)+'.png')
+            img.save(os.path.join('data', 'test', 'fearful', f'im{fearful_test}.png'))
             fearful_test += 1
         elif df['emotion'][i] == 3:
-            img.save('test/happy/im'+str(happy_test)+'.png')
+            img.save(os.path.join('data', 'test', 'happy', f'im{happy_test}.png'))
             happy_test += 1
         elif df['emotion'][i] == 4:
-            img.save('test/sad/im'+str(sad_test)+'.png')
+            img.save(os.path.join('data', 'test', 'sad', f'im{sad_test}.png'))
             sad_test += 1
         elif df['emotion'][i] == 5:
-            img.save('test/surprised/im'+str(surprised_test)+'.png')
+            img.save(os.path.join('data', 'test', 'surprised', f'im{surprised_test}.png'))
             surprised_test += 1
         elif df['emotion'][i] == 6:
-            img.save('test/neutral/im'+str(neutral_test)+'.png')
+            img.save(os.path.join('data', 'test', 'neutral', f'im{neutral_test}.png'))
             neutral_test += 1
 
 print("Done!")
