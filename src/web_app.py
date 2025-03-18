@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, url_for, jsonify
 import cv2
 import numpy as np
 from tensorflow.keras.models import Sequential
@@ -15,20 +15,14 @@ import kagglehub
 from kagglehub import KaggleDatasetAdapter
 import pandas as pd
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 # Initialize Pygame and its mixer for audio
 pygame.init()
 # pygame.mixer.init()  # Commented out audio mixer
 
-# Load the background music
-# try:
-#     background_music = pygame.mixer.Sound('game-music.mp3')
-#     background_music.set_volume(0.5)  # Set to 50% volume
-# except:
-#     print("Warning: Could not load game-music.mp3")
-#     background_music = None
-background_music = None  # Set to None since we're not using music for now
+# Background music set to None since we're not using music for now
+background_music = None
 
 # Load FER2013 dataset using Kaggle SDK
 def load_dataset():
@@ -76,15 +70,36 @@ except Exception as e:
 # Dictionary which assigns each label an emotion
 emotion_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutral", 5: "Sad", 6: "Surprised"}
 
-# Spiritual teachings for each emotion
-spiritual_teachings = {
-    "Angry": "Breathe deeply. Let peace flow through you like a gentle stream.",
-    "Disgusted": "Every experience teaches. Find wisdom in acceptance.",
-    "Fearful": "Trust in Nirankar's presence. You are never alone.",
-    "Happy": "Your joy creates ripples of light. Share this blessing.",
-    "Neutral": "Let Nirankar's light fill your heart, smile to create ripples.",
-    "Sad": "This too shall pass. Feel Nirankar's comfort embrace you.",
-    "Surprised": "Each moment reveals Nirankar's wonder. Stay open."
+# Spiritual teachings and videos for each emotion
+spiritual_content = {
+    "Angry": {
+        "text": "Breathe deeply. Let peace flow through you like a gentle stream.",
+        "video": "angry.mp4"
+    },
+    "Disgusted": {
+        "text": "Every experience teaches. Find wisdom in acceptance.",
+        "video": "disgusted.mp4"
+    },
+    "Fearful": {
+        "text": "Trust in Nirankar's presence. You are never alone.",
+        "video": "neutral.mp4"
+    },
+    "Happy": {
+        "text": "Your joy creates ripples of light. Share this blessing.",
+        "video": "happy.mp4"
+    },
+    "Neutral": {
+        "text": "Let Nirankar's light fill your heart, smile to create ripples.",
+        "video": "neutral.mp4"
+    },
+    "Sad": {
+        "text": "This too shall pass. Feel Nirankar's comfort embrace you.",
+        "video": "neutral.mp4"
+    },
+    "Surprised": {
+        "text": "Each moment reveals Nirankar's wonder. Stay open.",
+        "video": "surprised.mp4"
+    }
 }
 
 # Try to load face cascade classifier
@@ -207,8 +222,7 @@ class GameState:
         self.session_duration = 45.0
         self.ripple_effect = None
         self.state = "WAITING"  # WAITING, COUNTDOWN, ACTIVE, COMPLETE
-        # self.music_playing = False  # Commented out music state
-        # self.last_music_state = False  # Commented out music state
+        self.emotion_update = None  # Store the latest emotion update
         
 game_state = GameState()
 
@@ -249,15 +263,13 @@ def update_emotion_weights(detected_emotion):
             game_state.teaching_display_time = time.time()
             game_state.emotion_weights = {emotion: 0 for emotion in game_state.emotion_weights}
             
-            # Handle music playback based on emotion - Commented out
-            # if background_music:
-            #     should_play = dominant_emotion in ["Neutral", "Fearful"]
-            #     if should_play and not game_state.music_playing:
-            #         background_music.play(-1)  # -1 means loop indefinitely
-            #         game_state.music_playing = True
-            #     elif not should_play and game_state.music_playing:
-            #         background_music.stop()
-            #         game_state.music_playing = False
+            # Return the spiritual content for the new emotion
+            return {
+                "emotion": dominant_emotion,
+                "teaching": spiritual_content[dominant_emotion]["text"],
+                "video_path": f'videos/{spiritual_content[dominant_emotion]["video"]}'
+            }
+    return None
 
 def create_ripple_surface(frame, ripple_effect):
     """Create enhanced ripple effect with emotion-specific visuals"""
@@ -357,13 +369,16 @@ def generate_frames():
                         cropped_img = np.expand_dims(np.expand_dims(cv2.resize(roi_gray, (48, 48)), -1), 0)
                         prediction = model.predict(cropped_img)
                         detected_emotion = emotion_dict[int(np.argmax(prediction))]
-                        update_emotion_weights(detected_emotion)
+                        emotion_update = update_emotion_weights(detected_emotion)
                         game_state.last_capture_time = current_time
+                        
+                        # If there's a new emotion, store it for the /emotion_update endpoint
+                        if emotion_update:
+                            game_state.emotion_update = emotion_update
                         
                         # Create new ripples based on emotion
                         center_x, center_y = x + w//2, y + h//2
                         if game_state.ripple_effect and game_state.current_emotion:
-                            # Create more dramatic ripples for positive emotions
                             strength = 1.5 if game_state.current_emotion in ["Happy", "Surprised"] else 1.0
                             game_state.ripple_effect.create_emotion_ripples(
                                 center_x, center_y,
@@ -380,7 +395,7 @@ def generate_frames():
                             teaching_age = current_time - game_state.teaching_display_time
                             if teaching_age < game_state.teaching_duration:
                                 alpha = 1.0 - (teaching_age / game_state.teaching_duration)
-                                teaching = spiritual_teachings[game_state.current_emotion]
+                                teaching = spiritual_content[game_state.current_emotion]["text"]
                                 cv2.putText(frame, teaching, (10, frame.shape[0] - 20),
                                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255),
                                           max(1, int(2 * alpha)), cv2.LINE_AA)
@@ -400,14 +415,11 @@ def generate_frames():
                 game_state.session_active = False
                 game_state.emotion_weights = {emotion: 0 for emotion in game_state.emotion_weights}
                 game_state.current_emotion = None
-                # Stop music if playing - Commented out
-                # if background_music and game_state.music_playing:
-                #     background_music.stop()
-                #     game_state.music_playing = False
                 game_state.state = "WAITING"
             
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
+            
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
                    
@@ -424,11 +436,24 @@ def video_feed():
     return Response(generate_frames(), 
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/emotion_update')
+def emotion_update():
+    """Endpoint to check for new emotion updates"""
+    if game_state.emotion_update:
+        data = game_state.emotion_update
+        # Clear the update after sending
+        game_state.emotion_update = None
+        return jsonify(data)
+    return jsonify({"emotion": None})
+
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
     os.makedirs('templates', exist_ok=True)
     
-    # Create the HTML template
+    # Make sure videos directory exists
+    os.makedirs(os.path.join('static', 'videos'), exist_ok=True)
+    
+    # Create the HTML template with updated JavaScript
     with open('templates/index.html', 'w') as f:
         f.write('''
 <!DOCTYPE html>
@@ -477,8 +502,94 @@ if __name__ == '__main__':
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: relative;
+            margin: auto;
+            width: 90%;
+            max-width: 800px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .teaching-video {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+        }
+        .teaching-text {
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
     </style>
     <script>
+        let currentVideoTimeout = null;
+        let lastEmotion = null;
+        let emotionCheckInterval = null;
+        
+        function showTeaching(videoPath, text, duration = 5000) {
+            const modal = document.getElementById('teachingModal');
+            const video = document.getElementById('teachingVideo');
+            const teachingText = document.getElementById('teachingText');
+            
+            // Clear any existing timeout
+            if (currentVideoTimeout) {
+                clearTimeout(currentVideoTimeout);
+            }
+            
+            // Set up video and text
+            video.src = '/static/' + videoPath;
+            teachingText.textContent = text;
+            
+            // Show modal
+            modal.style.display = 'block';
+            
+            // Play video
+            video.play().catch(function(error) {
+                console.log("Video play failed:", error);
+            });
+            
+            // Set timeout to hide modal
+            currentVideoTimeout = setTimeout(() => {
+                hideTeaching();
+            }, duration);
+        }
+        
+        function hideTeaching() {
+            const modal = document.getElementById('teachingModal');
+            const video = document.getElementById('teachingVideo');
+            
+            // Stop video and hide modal
+            video.pause();
+            video.currentTime = 0;
+            modal.style.display = 'none';
+        }
+        
+        function checkForEmotionUpdates() {
+            fetch('/emotion_update')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.emotion && data.emotion !== lastEmotion) {
+                        lastEmotion = data.emotion;
+                        showTeaching(data.video_path, data.teaching, 5000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking for emotion updates:', error);
+                });
+        }
+        
         window.onload = function() {
             const img = document.getElementById('videoFeed');
             const errorMsg = document.getElementById('errorMessage');
@@ -492,6 +603,9 @@ if __name__ == '__main__':
                 errorMsg.style.display = 'none';
                 img.style.display = 'block';
             };
+            
+            // Start polling for emotion updates
+            emotionCheckInterval = setInterval(checkForEmotionUpdates, 500);
         };
     </script>
 </head>
@@ -515,13 +629,23 @@ if __name__ == '__main__':
             </div>
         </div>
     </div>
+    
+    <!-- Teaching Modal -->
+    <div id="teachingModal" class="modal">
+        <div class="modal-content">
+            <video id="teachingVideo" class="teaching-video" playsinline>
+                Your browser does not support the video tag.
+            </video>
+            <div id="teachingText" class="teaching-text"></div>
+        </div>
+    </div>
 </body>
 </html>
         ''')
     
     # Get port from environment variable for production deployment
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8000))
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     print(f"Starting Ripple Effect Game. Please open http://127.0.0.1:{port} in your browser")
-    app.run(host='0.0.0.0', port=port, debug=debug) 
+    app.run(host='0.0.0.0', port=port, debug=debug)
