@@ -73,31 +73,24 @@ emotion_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutra
 # Spiritual teachings and videos for each emotion
 spiritual_content = {
     "Angry": {
-        "text": "Breathe deeply. Let peace flow through you like a gentle stream.",
         "video": "angry.mp4"
     },
     "Disgusted": {
-        "text": "Every experience teaches. Find wisdom in acceptance.",
         "video": "disgusted.mp4"
     },
     "Fearful": {
-        "text": "Trust in Nirankar's presence. You are never alone.",
-        "video": "neutral.mp4"
+        "video": "happy.mp4"
     },
     "Happy": {
-        "text": "Your joy creates ripples of light. Share this blessing.",
         "video": "happy.mp4"
     },
     "Neutral": {
-        "text": "Let Nirankar's light fill your heart, smile to create ripples.",
-        "video": "neutral.mp4"
+        "video": "happy.mp4"
     },
     "Sad": {
-        "text": "This too shall pass. Feel Nirankar's comfort embrace you.",
-        "video": "neutral.mp4"
+        "video": "happy.mp4"
     },
     "Surprised": {
-        "text": "Each moment reveals Nirankar's wonder. Stay open.",
         "video": "surprised.mp4"
     }
 }
@@ -263,11 +256,16 @@ def update_emotion_weights(detected_emotion):
             game_state.teaching_display_time = time.time()
             game_state.emotion_weights = {emotion: 0 for emotion in game_state.emotion_weights}
             
-            # Return the spiritual content for the new emotion
+            # Get video path and verify file exists
+            video_path = f'videos/{spiritual_content[dominant_emotion]["video"]}'
+            full_path = os.path.join('static', video_path)
+            print(f"Detected {dominant_emotion}, video path: {video_path}")
+            print(f"Full path exists: {os.path.exists(full_path)}")
+            
+            # Return the video information
             return {
                 "emotion": dominant_emotion,
-                "teaching": spiritual_content[dominant_emotion]["text"],
-                "video_path": f'videos/{spiritual_content[dominant_emotion]["video"]}'
+                "video_path": video_path
             }
     return None
 
@@ -395,8 +393,8 @@ def generate_frames():
                             teaching_age = current_time - game_state.teaching_display_time
                             if teaching_age < game_state.teaching_duration:
                                 alpha = 1.0 - (teaching_age / game_state.teaching_duration)
-                                teaching = spiritual_content[game_state.current_emotion]["text"]
-                                cv2.putText(frame, teaching, (10, frame.shape[0] - 20),
+                                # teaching = spiritual_content[game_state.current_emotion]["text"]
+                                cv2.putText(frame, (10, frame.shape[0] - 20),
                                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255),
                                           max(1, int(2 * alpha)), cv2.LINE_AA)
                 
@@ -536,28 +534,28 @@ if __name__ == '__main__':
     <script>
         let currentVideoTimeout = null;
         let lastEmotion = null;
-        let emotionCheckInterval = null;
         
-        function showTeaching(videoPath, text, duration = 5000) {
+        function showTeaching(videoPath, duration = 15000) {
             const modal = document.getElementById('teachingModal');
             const video = document.getElementById('teachingVideo');
-            const teachingText = document.getElementById('teachingText');
             
             // Clear any existing timeout
             if (currentVideoTimeout) {
                 clearTimeout(currentVideoTimeout);
             }
             
-            // Set up video and text
-            video.src = '/static/' + videoPath;
-            teachingText.textContent = text;
+            // Set up video
+            const fullVideoPath = '/static/' + videoPath;
+            console.log('Playing video:', fullVideoPath);
+            video.src = fullVideoPath;
             
             // Show modal
             modal.style.display = 'block';
             
-            // Play video
+            // Force reload and play video
+            video.load();
             video.play().catch(function(error) {
-                console.log("Video play failed:", error);
+                console.error("Video play failed:", error);
             });
             
             // Set timeout to hide modal
@@ -569,44 +567,25 @@ if __name__ == '__main__':
         function hideTeaching() {
             const modal = document.getElementById('teachingModal');
             const video = document.getElementById('teachingVideo');
-            
-            // Stop video and hide modal
             video.pause();
             video.currentTime = 0;
             modal.style.display = 'none';
         }
         
-        function checkForEmotionUpdates() {
+        // Check for emotion updates every 500ms
+        setInterval(() => {
             fetch('/emotion_update')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.emotion && data.emotion !== lastEmotion) {
+                    if (data.emotion && data.emotion !== lastEmotion && data.video_path) {
                         lastEmotion = data.emotion;
-                        showTeaching(data.video_path, data.teaching, 5000);
+                        showTeaching(data.video_path);
                     }
                 })
                 .catch(error => {
                     console.error('Error checking for emotion updates:', error);
                 });
-        }
-        
-        window.onload = function() {
-            const img = document.getElementById('videoFeed');
-            const errorMsg = document.getElementById('errorMessage');
-            
-            img.onerror = function() {
-                errorMsg.style.display = 'block';
-                img.style.display = 'none';
-            };
-            
-            img.onload = function() {
-                errorMsg.style.display = 'none';
-                img.style.display = 'block';
-            };
-            
-            // Start polling for emotion updates
-            emotionCheckInterval = setInterval(checkForEmotionUpdates, 500);
-        };
+        }, 500);
     </script>
 </head>
 <body>
@@ -615,7 +594,7 @@ if __name__ == '__main__':
         <div class="instructions">
             <h3>Welcome to the Ripple Effect Game</h3>
             <p>Create waves of positivity through mindful emotional awareness.</p>
-            <p>Each session lasts 45 seconds. Listen to the teachings and let your emotions flow naturally.</p>
+            <p>Each session lasts 45 seconds. Watch the videos and let your emotions flow naturally.</p>
         </div>
         <div class="video-container">
             <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video feed">
@@ -636,7 +615,6 @@ if __name__ == '__main__':
             <video id="teachingVideo" class="teaching-video" playsinline>
                 Your browser does not support the video tag.
             </video>
-            <div id="teachingText" class="teaching-text"></div>
         </div>
     </div>
 </body>

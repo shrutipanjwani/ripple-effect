@@ -71,7 +71,7 @@ python web_app.py
 3. Open your web browser and go to:
 
 ```
-http://localhost:5000
+http://localhost:8000
 ```
 
 ## How to Play
